@@ -49,7 +49,10 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_INSTALL_PREFIX="C:\protobuf_install" `
             -DBUILD_TESTING=OFF `
-            -Dprotobuf_BUILD_TESTS=OFF
+            -Dprotobuf_BUILD_TESTS=OFF `
+            -Dprotobuf_MSVC_STATIC_RUNTIME=ON `
+            -Dprotobuf_WITH_ZLIB=ON `
+            -DABSL_BUILD_TESTING=OFF
           msbuild protobuf.sln /p:Configuration=Release /p:Platform=x64
           cmake --install .
 
