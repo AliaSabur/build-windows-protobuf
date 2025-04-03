@@ -52,3 +52,10 @@ jobs:
             -Dprotobuf_BUILD_TESTS=OFF
           msbuild protobuf.sln /p:Configuration=Release /p:Platform=x64
           cmake --install .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: C:\protobuf_install
+          retention-days: 1
