@@ -18,19 +18,37 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Configure build for amd64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Build
+        shell: pwsh
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          git clone https://github.com/protocolbuffers/protobuf.git
+          cd protobuf
+          git submodule update --init --recursive
+          New-Item -ItemType Directory -Force -Path "C:\protobuf_install"
+          New-Item -ItemType Directory -Force -Name "build"; Set-Location -Path "build"
+          cmake .. -G "Visual Studio 17 2022" `
+            -DCMAKE_CXX_STANDARD=20 `
+            -DCMAKE_CONFIGURATION_TYPES="Release" `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_INSTALL_PREFIX="C:\protobuf_install" `
+            -DBUILD_TESTING=OFF `
+            -Dprotobuf_BUILD_TESTS=OFF
+          msbuild protobuf.sln /p:Configuration=Release /p:Platform=x64
+          cmake --install .
