@@ -26,7 +26,7 @@ jobs:
         with:
           msbuild-architecture: x64
 
-      - name: Download and extract Protobuf v${{ env.PROTOBUF_VERSION }}
+      - name: Download, extract, build, and install Protobuf v${{ env.PROTOBUF_VERSION }}
         shell: pwsh
         run: |
           $ver = $Env:PROTOBUF_VERSION
@@ -41,9 +41,6 @@ jobs:
           git clone --depth 1 https://github.com/open-source-parsers/jsoncpp.git third_party/jsoncpp
           git clone --branch lts_2023_08_02 --single-branch --depth 1 https://github.com/abseil/abseil-cpp.git third_party/abseil-cpp
 
-      - name: Build and install Protobuf
-        shell: pwsh
-        run: |
           $installDir = "C:\protobuf_install"
           New-Item -ItemType Directory -Force -Path $installDir | Out-Null
 
