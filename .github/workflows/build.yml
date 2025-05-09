@@ -46,8 +46,6 @@ jobs:
           git clone --depth 1 https://github.com/madler/zlib.git third_party/zlib
           git clone --branch lts_2023_08_02 --single-branch --depth 1 https://github.com/abseil/abseil-cpp.git third_party/abseil-cpp
 
-          bazel build :protoc :protobuf
-
           $installDir = "C:\protobuf_install"
           New-Item -ItemType Directory -Force -Path $installDir | Out-Null
 
