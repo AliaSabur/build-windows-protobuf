@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      PROTOBUF_VERSION: 30.2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure build for amd64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Download and extract Protobuf v${{ env.PROTOBUF_VERSION }}
+        shell: pwsh
+        run: |
+          $ver = $Env:PROTOBUF_VERSION
+          $zip = "protobuf-$ver.zip"
+          $url = "https://github.com/protocolbuffers/protobuf/releases/download/v$ver/$zip"
+          Write-Host "Downloading Protobuf $ver from $url"
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          Write-Host "Extracting $zip"
+          Expand-Archive -Path $zip -DestinationPath .
+          Set-Location -Path "protobuf-$ver"
+          git clone --depth 1 https://github.com/google/googletest.git third_party/googletest
+          git clone --depth 1 https://github.com/open-source-parsers/jsoncpp.git third_party/jsoncpp
+          git clone --branch lts_2023_08_02 --single-branch --depth 1 https://github.com/abseil/abseil-cpp.git third_party/abseil-cpp
+
+      - name: Build and install Protobuf
+        shell: pwsh
+        run: |
+          $installDir = "C:\protobuf_install"
+          New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+
+          New-Item -ItemType Directory -Force -Name "build"
+          Set-Location -Path "build"
+
+          cmake .. -G "Visual Studio 17 2022" `
+            -DCMAKE_CXX_STANDARD=20 `
+            -DCMAKE_CONFIGURATION_TYPES="Release" `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_INSTALL_PREFIX="$installDir" `
+            -DBUILD_TESTING=OFF `
+            -Dprotobuf_BUILD_TESTS=OFF `
+            -Dprotobuf_MSVC_STATIC_RUNTIME=ON `
+            -Dprotobuf_WITH_ZLIB=ON `
+            -DABSL_BUILD_TESTING=OFF
+
+          msbuild protobuf.sln /p:Configuration=Release /p:Platform=x64
+          cmake --install .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: C:\protobuf_install
+          retention-days: 1
