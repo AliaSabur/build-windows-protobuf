@@ -41,7 +41,7 @@ jobs:
           Write-Host "Extracting $zip"
           Expand-Archive -Path $zip -DestinationPath .
           Set-Location -Path "protobuf-$ver"
-          choco install zlib -y
+          
           # git clone --depth 1 https://github.com/google/googletest.git third_party/googletest
           # git clone --depth 1 https://github.com/open-source-parsers/jsoncpp.git third_party/jsoncpp
           # git clone --depth 1 https://github.com/madler/zlib.git third_party/zlib

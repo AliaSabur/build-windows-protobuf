@@ -48,8 +48,6 @@ jobs:
           New-Item -ItemType Directory -Force -Name "build"
           Set-Location -Path "build"
 
-          choco install zlib -y
-
           cmake .. `
             -DBUILD_SHARED_LIBS=OFF `
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON `
