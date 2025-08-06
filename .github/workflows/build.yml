@@ -41,10 +41,10 @@ jobs:
           Write-Host "Extracting $zip"
           Expand-Archive -Path $zip -DestinationPath .
           Set-Location -Path "protobuf-$ver"
-          git clone --depth 1 https://github.com/google/googletest.git third_party/googletest
-          git clone --depth 1 https://github.com/open-source-parsers/jsoncpp.git third_party/jsoncpp
-          git clone --depth 1 https://github.com/madler/zlib.git third_party/zlib
-          git clone --branch lts_2023_08_02 --single-branch --depth 1 https://github.com/abseil/abseil-cpp.git third_party/abseil-cpp
+          # git clone --depth 1 https://github.com/google/googletest.git third_party/googletest
+          # git clone --depth 1 https://github.com/open-source-parsers/jsoncpp.git third_party/jsoncpp
+          # git clone --depth 1 https://github.com/madler/zlib.git third_party/zlib
+          # git clone --branch lts_2023_08_02 --single-branch --depth 1 https://github.com/abseil/abseil-cpp.git third_party/abseil-cpp
 
           $installDir = "C:\protobuf_install"
           New-Item -ItemType Directory -Force -Path $installDir | Out-Null
@@ -54,6 +54,7 @@ jobs:
 
           cmake .. -G "Visual Studio 17 2022" `
             -DCMAKE_CXX_STANDARD=20 `
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON `
             -DCMAKE_CONFIGURATION_TYPES="Release" `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_INSTALL_PREFIX="$installDir" `
