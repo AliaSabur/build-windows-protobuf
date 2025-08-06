@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      PROTOBUF_VERSION: 31.1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure build for amd64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Download, extract, build, and install Protobuf v${{ env.PROTOBUF_VERSION }}
+        shell: pwsh
+        run: |
+          $ver = $Env:PROTOBUF_VERSION
+          $zip = "protobuf-$ver.zip"
+          $url = "https://github.com/protocolbuffers/protobuf/releases/download/v$ver/$zip"
+          Write-Host "Downloading Protobuf $ver from $url"
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          Write-Host "Extracting $zip"
+          Expand-Archive -Path $zip -DestinationPath .
+          Set-Location -Path "protobuf-$ver"
+
+          $installDir = "C:\protobuf_install"
+          New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+
+          New-Item -ItemType Directory -Force -Name "build"
+          Set-Location -Path "build"
+
+          cmake .. `
+            -DBUILD_SHARED_LIBS=OFF `
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON `
+            -Dprotobuf_BUILD_TESTS=OFF `
+            -DCMAKE_CXX_STANDARD=20 `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_INSTALL_PREFIX="$installDir"
+          
+          cmake --build .
+          cmake --install .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: protobuf-windows-build
+          path: C:\protobuf_install
+          retention-days: 1
